@@ -1,3 +1,4 @@
+import os
 from airflow import DAG
 from airflow.operators.python import PythonOperator
 from airflow.operators.trigger_dagrun import TriggerDagRunOperator
@@ -5,12 +6,12 @@ from datetime import datetime, timedelta
 from sqlalchemy import create_engine, text
 import pandas as pd
 
-DB_USER     = "postgres"
-DB_PASSWORD = "esraa12"
-DB_HOST     = "192.168.1.12"
-DB_PORT     = "5432"
-DB_NAME     = "Project"
-DATA_PATH   = "/opt/airflow/data/raw_source"
+DB_USER     = os.getenv("DB_USER", "postgres")
+DB_PASSWORD = os.getenv("DB_PASSWORD")
+DB_HOST     = os.getenv("DB_HOST", "localhost")
+DB_PORT     = os.getenv("DB_PORT", "5432")
+DB_NAME     = os.getenv("DB_NAME", "Project")
+DATA_PATH   = os.getenv("DATA_PATH", "/opt/airflow/data/raw_source")
 
 default_args = {
     "owner": "airflow",
