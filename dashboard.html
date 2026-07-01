@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Olist Retail Pipeline — Dashboard</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+:root{
+  --bg:#0d1117;--surface:#161b22;--surface2:#1c2128;--border:#21262d;
+  --accent:#f78166;--accent2:#3fb950;--accent3:#58a6ff;--warn:#e3b341;
+  --danger:#f85149;--purple:#bc8cff;--muted:#8b949e;--text:#e6edf3;--sub:#c9d1d9;
+  --mono:'Courier New',monospace;--sans:system-ui,-apple-system,sans-serif;
+  --r:8px;--gap:18px;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:14px;min-height:100vh;}
+
+/* HEADER */
+header{display:flex;align-items:center;justify-content:space-between;padding:14px 24px;
+  border-bottom:1px solid var(--border);background:var(--surface);
+  position:sticky;top:0;z-index:100;gap:12px;flex-wrap:wrap;}
+.logo{font-family:var(--mono);font-size:16px;letter-spacing:3px;color:var(--accent);}
+.logo span{color:var(--text);}
+.hdr-mid{display:flex;align-items:center;gap:8px;}
+#api-input{background:var(--bg);border:1px solid var(--border);color:var(--text);
+  padding:5px 10px;border-radius:var(--r);font-size:12px;width:210px;font-family:var(--mono);}
+#api-input:focus{outline:1px solid var(--accent);}
+.btn{background:var(--accent);color:#0d1117;border:none;padding:6px 14px;border-radius:var(--r);
+  cursor:pointer;font-weight:700;font-size:12px;transition:opacity .15s;}
+.btn:hover{opacity:.8;}
+.status{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted);}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--accent2);animation:pulse 2s infinite;}
+.dot.off{background:var(--danger);animation:none;}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:.3;}}
+
+/* TABS */
+.tabs{display:flex;gap:2px;padding:0 24px;background:var(--surface);
+  border-bottom:1px solid var(--border);overflow-x:auto;}
+.tab{padding:10px 16px;cursor:pointer;font-size:13px;color:var(--muted);
+  border-bottom:2px solid transparent;transition:all .15s;white-space:nowrap;}
+.tab:hover{color:var(--text);}
+.tab.active{color:var(--accent);border-bottom-color:var(--accent);}
+.tab-content{display:none;padding:var(--gap) 24px 40px;}
+.tab-content.active{display:block;}
+
+/* SECTION LABEL */
+.sl{font-family:var(--mono);font-size:10px;letter-spacing:3px;color:var(--muted);
+  text-transform:uppercase;margin-bottom:12px;display:flex;align-items:center;gap:10px;}
+.sl::after{content:'';flex:1;height:1px;background:var(--border);}
+
+/* GRIDS */
+.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:var(--gap);}
+.g3{display:grid;grid-template-columns:repeat(3,1fr);gap:var(--gap);}
+.g21{display:grid;grid-template-columns:2fr 1fr;gap:var(--gap);}
+.g12{display:grid;grid-template-columns:1fr 2fr;gap:var(--gap);}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:var(--gap);}
+.mt{margin-top:var(--gap);}
+@media(max-width:900px){.g4,.g3,.g21,.g12,.g2{grid-template-columns:1fr;}}
+
+/* KPI */
+.kpi{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);
+  padding:18px;position:relative;overflow:hidden;transition:border-color .2s;}
+.kpi:hover{border-color:var(--accent);}
+.kpi::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;}
+.kpi.r::before{background:var(--accent);}
+.kpi.b::before{background:var(--accent3);}
+.kpi.g::before{background:var(--accent2);}
+.kpi.y::before{background:var(--warn);}
+.kpi.p::before{background:var(--purple);}
+.kpi-lbl{font-size:10px;letter-spacing:1.5px;color:var(--muted);text-transform:uppercase;margin-bottom:8px;}
+.kpi-val{font-family:var(--mono);font-size:26px;font-weight:700;line-height:1;}
+.kpi-sub{margin-top:5px;font-size:11px;color:var(--muted);}
+
+/* CARD */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:18px;}
+.ctitle{font-family:var(--mono);font-size:11px;letter-spacing:2px;color:var(--sub);
+  text-transform:uppercase;margin-bottom:14px;padding-bottom:10px;
+  border-bottom:1px solid var(--border);
+  display:flex;justify-content:space-between;align-items:center;gap:6px;flex-wrap:wrap;}
+.cbadge{background:var(--border);color:var(--muted);font-size:10px;padding:2px 8px;
+  border-radius:20px;letter-spacing:.5px;}
+.ch{position:relative;height:260px;}
+.ch.tall{height:320px;}
+.ch.sm{height:180px;}
+
+/* BARS */
+.rlist{display:flex;flex-direction:column;gap:10px;max-height:260px;overflow-y:auto;}
+.rrow{display:flex;flex-direction:column;gap:3px;}
+.rhdr{display:flex;justify-content:space-between;font-size:12px;}
+.rname{color:var(--sub);}
+.rval{font-family:var(--mono);color:var(--text);font-size:12px;}
+.rtrack{height:5px;background:var(--border);border-radius:3px;overflow:hidden;}
+.rfill{height:100%;border-radius:3px;transition:width .6s ease;}
+
+/* TABLE */
+.twrap{overflow:auto;max-height:380px;}
+table{width:100%;border-collapse:collapse;font-size:13px;}
+thead th{font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;
+  color:var(--muted);padding:9px 10px;text-align:left;border-bottom:1px solid var(--border);
+  position:sticky;top:0;background:var(--surface);}
+tbody tr{border-bottom:1px solid var(--border);transition:background .1s;}
+tbody tr:hover{background:rgba(255,255,255,.03);}
+tbody td{padding:9px 10px;color:var(--sub);font-variant-numeric:tabular-nums;}
+
+/* BADGE */
+.badge{display:inline-block;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:600;}
+.bg{background:rgba(63,185,80,.15);color:var(--accent2);}
+.br{background:rgba(248,81,73,.15);color:var(--danger);}
+.by{background:rgba(227,179,65,.15);color:var(--warn);}
+.bb{background:rgba(88,166,255,.15);color:var(--accent3);}
+.bp{background:rgba(188,140,255,.15);color:var(--purple);}
+
+/* STARS */
+.stars{display:flex;flex-direction:column;gap:8px;}
+.star-row{display:flex;align-items:center;gap:10px;}
+.star-lbl{font-family:var(--mono);font-size:13px;color:var(--warn);width:24px;}
+.star-bar{flex:1;height:10px;background:var(--border);border-radius:5px;overflow:hidden;}
+.star-fill{height:100%;border-radius:5px;background:var(--warn);transition:width .6s;}
+.star-cnt{font-size:12px;color:var(--muted);width:60px;text-align:right;font-family:var(--mono);}
+
+/* PAYMENT CARD */
+.pay-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px;}
+.pay-card{background:var(--surface2);border:1px solid var(--border);border-radius:var(--r);padding:14px;}
+.pay-type{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;}
+.pay-rev{font-family:var(--mono);font-size:20px;color:var(--accent);}
+.pay-sub{font-size:11px;color:var(--muted);margin-top:4px;}
+
+/* SCORE BIG */
+.score-big{display:flex;align-items:center;justify-content:center;flex-direction:column;
+  gap:4px;padding:20px;}
+.score-num{font-family:var(--mono);font-size:56px;font-weight:700;color:var(--warn);}
+.score-stars{font-size:24px;letter-spacing:2px;}
+.score-sub{font-size:12px;color:var(--muted);}
+
+/* SELLER CARD */
+.seller-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:10px;max-height:340px;overflow-y:auto;}
+.sc{background:var(--surface2);border:1px solid var(--border);border-radius:var(--r);padding:14px;}
+.sc-city{font-size:13px;color:var(--text);font-weight:600;text-transform:capitalize;}
+.sc-state{font-size:11px;color:var(--muted);margin-bottom:8px;}
+.sc-rev{font-family:var(--mono);font-size:16px;color:var(--accent);}
+.sc-sub{font-size:11px;color:var(--muted);margin-top:3px;}
+
+/* LOADING */
+.ld{display:flex;align-items:center;justify-content:center;height:200px;
+  color:var(--muted);flex-direction:column;gap:10px;font-family:var(--mono);font-size:11px;letter-spacing:2px;}
+.spin{width:22px;height:22px;border:2px solid var(--border);border-top-color:var(--accent);
+  border-radius:50%;animation:sp .6s linear infinite;}
+@keyframes sp{to{transform:rotate(360deg);}}
+.err{color:var(--danger);font-size:12px;padding:12px;background:rgba(248,81,73,.08);
+  border:1px solid rgba(248,81,73,.2);border-radius:var(--r);text-align:center;}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">OLIST<span>_</span>PIPELINE</div>
+  <div class="hdr-mid">
+    <label style="font-size:11px;color:var(--muted);">API URL</label>
+    <input id="api-input" type="text" value="http://localhost:5000"/>
+    <button class="btn" onclick="loadAll()">↻ REFRESH</button>
+  </div>
+  <div class="status">
+    <div class="dot" id="sdot"></div>
+    <span id="stxt">Connecting…</span>
+    <span id="sup"></span>
+  </div>
+</header>
+
+<div class="tabs">
+  <div class="tab active"  onclick="goTab('overview',this)">Overview</div>
+  <div class="tab"         onclick="goTab('daily',this)">Daily</div>
+  <div class="tab"         onclick="goTab('products',this)">Products</div>
+  <div class="tab"         onclick="goTab('payments',this)">Payments</div>
+  <div class="tab"         onclick="goTab('reviews',this)">Reviews</div>
+  <div class="tab"         onclick="goTab('sellers',this)">Sellers</div>
+  <div class="tab"         onclick="goTab('sales',this)">Sales Detail</div>
+</div>
+
+<!-- ══ OVERVIEW ══════════════════════════════════════════════ -->
+<div id="tab-overview" class="tab-content active">
+  <div class="sl">Key Metrics</div>
+  <div class="g4" id="kpis"><div class="ld"><div class="spin"></div></div></div>
+
+  <div class="sl mt">Monthly Revenue &amp; Regional Breakdown</div>
+  <div class="g21">
+    <div class="card">
+      <div class="ctitle">Monthly Revenue<span class="cbadge">/api/summary</span></div>
+      <div class="ch" id="w-rev"><div class="ld"><div class="spin"></div></div></div>
+    </div>
+    <div class="card">
+      <div class="ctitle">Revenue by State<span class="cbadge">/api/region</span></div>
+      <div id="w-region" class="ld"><div class="spin"></div></div>
+    </div>
+  </div>
+
+  <div class="sl mt">Orders &amp; Average Value</div>
+  <div class="g2">
+    <div class="card">
+      <div class="ctitle">Monthly Orders<span class="cbadge">/api/summary</span></div>
+      <div class="ch" id="w-ord"><div class="ld"><div class="spin"></div></div></div>
+    </div>
+    <div class="card">
+      <div class="ctitle">Avg Order Value / Month<span class="cbadge">/api/summary</span></div>
+      <div class="ch" id="w-avg"><div class="ld"><div class="spin"></div></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ DAILY ═════════════════════════════════════════════════ -->
+<div id="tab-daily" class="tab-content">
+  <div class="sl">Daily Performance</div>
+  <div class="g3" id="daily-kpis"><div class="ld"><div class="spin"></div></div></div>
+  <div class="card mt">
+    <div class="ctitle">Daily Revenue<span class="cbadge">/api/daily</span></div>
+    <div class="ch tall" id="w-drev"><div class="ld"><div class="spin"></div></div></div>
+  </div>
+  <div class="card mt">
+    <div class="ctitle">Daily Orders<span class="cbadge">/api/daily</span></div>
+    <div class="ch" id="w-dord"><div class="ld"><div class="spin"></div></div></div>
+  </div>
+</div>
+
+<!-- ══ PRODUCTS ══════════════════════════════════════════════ -->
+<div id="tab-products" class="tab-content">
+  <div class="sl">Top Products by Revenue</div>
+  <div class="g21">
+    <div class="card">
+      <div class="ctitle">Top 10 Categories<span class="cbadge">/api/top_products</span></div>
+      <div class="ch tall" id="w-cat"><div class="ld"><div class="spin"></div></div></div>
+    </div>
+    <div class="card">
+      <div class="ctitle">Stock Status Distribution<span class="cbadge">/api/top_products</span></div>
+      <div class="ch" id="w-stock"><div class="ld"><div class="spin"></div></div></div>
+    </div>
+  </div>
+  <div class="sl mt">Product Inventory Table</div>
+  <div class="card">
+    <div class="ctitle">Top 20 Products<span class="cbadge">/api/top_products</span></div>
+    <div class="twrap" id="w-ptable"><div class="ld"><div class="spin"></div></div></div>
+  </div>
+</div>
+
+<!-- ══ PAYMENTS ══════════════════════════════════════════════ -->
+<div id="tab-payments" class="tab-content">
+  <div class="sl">Payment Methods Overview</div>
+  <div class="pay-grid" id="w-paycards"><div class="ld"><div class="spin"></div></div></div>
+
+  <div class="sl mt">Revenue &amp; Installments Analysis</div>
+  <div class="g2">
+    <div class="card">
+      <div class="ctitle">Revenue by Payment Type<span class="cbadge">/api/payments</span></div>
+      <div class="ch" id="w-payrev"><div class="ld"><div class="spin"></div></div></div>
+    </div>
+    <div class="card">
+      <div class="ctitle">Installments Distribution<span class="cbadge">/api/payments/installments</span></div>
+      <div class="ch" id="w-install"><div class="ld"><div class="spin"></div></div></div>
+    </div>
+  </div>
+
+  <div class="sl mt">Payment Methods Table</div>
+  <div class="card">
+    <div class="ctitle">Payment Methods Detail<span class="cbadge">/api/payments</span></div>
+    <div class="twrap" id="w-paytable"><div class="ld"><div class="spin"></div></div></div>
+  </div>
+</div>
+
+<!-- ══ REVIEWS ════════════════════════════════════════════════ -->
+<div id="tab-reviews" class="tab-content">
+  <div class="sl">Customer Satisfaction</div>
+  <div class="g3">
+    <div class="card" style="grid-column:1">
+      <div class="ctitle">Overall Score<span class="cbadge">/api/reviews/scores</span></div>
+      <div id="w-score-big" class="ld"><div class="spin"></div></div>
+    </div>
+    <div class="card" style="grid-column:span 2">
+      <div class="ctitle">Score Distribution<span class="cbadge">/api/reviews/scores</span></div>
+      <div id="w-stars" class="ld"><div class="spin"></div></div>
+    </div>
+  </div>
+
+  <div class="sl mt">Reviews Trend</div>
+  <div class="g2">
+    <div class="card">
+      <div class="ctitle">Monthly Review Count<span class="cbadge">/api/reviews</span></div>
+      <div class="ch" id="w-revcount"><div class="ld"><div class="spin"></div></div></div>
+    </div>
+    <div class="card">
+      <div class="ctitle">Monthly Avg Score<span class="cbadge">/api/reviews</span></div>
+      <div class="ch" id="w-revscore"><div class="ld"><div class="spin"></div></div></div>
+    </div>
+  </div>
+
+  <div class="sl mt">Score Breakdown by Month</div>
+  <div class="card">
+    <div class="ctitle">Score Stacked by Month<span class="cbadge">/api/reviews</span></div>
+    <div class="ch tall" id="w-revstack"><div class="ld"><div class="spin"></div></div></div>
+  </div>
+
+  <div class="sl mt">Recent Customer Comments</div>
+  <div class="card">
+    <div class="ctitle">Latest Reviews with Comments<span class="cbadge">/api/reviews/comments</span></div>
+    <div class="twrap" id="w-revcomments"><div class="ld"><div class="spin"></div></div></div>
+  </div>
+</div>
+
+<!-- ══ SELLERS ════════════════════════════════════════════════ -->
+<div id="tab-sellers" class="tab-content">
+  <div class="sl">Top Sellers Performance</div>
+  <div class="g21">
+    <div class="card">
+      <div class="ctitle">Top 10 Sellers — Revenue<span class="cbadge">/api/sellers</span></div>
+      <div class="ch tall" id="w-selbar"><div class="ld"><div class="spin"></div></div></div>
+    </div>
+    <div class="card">
+      <div class="ctitle">Revenue by State<span class="cbadge">/api/region</span></div>
+      <div class="ch" id="w-selstate"><div class="ld"><div class="spin"></div></div></div>
+    </div>
+  </div>
+  <div class="sl mt">Top 20 Sellers</div>
+  <div class="seller-grid" id="w-selcards"><div class="ld"><div class="spin"></div></div></div>
+</div>
+
+<!-- ══ SALES DETAIL ═══════════════════════════════════════════ -->
+<div id="tab-sales" class="tab-content">
+  <div class="sl">Recent Sales Transactions</div>
+  <div class="card">
+    <div class="ctitle">Sales Records (100)<span class="cbadge">/api/sales</span></div>
+    <div class="twrap" id="w-sales"><div class="ld"><div class="spin"></div></div></div>
+  </div>
+</div>
+
+<script>
+/* ── UTILS ─────────────────────────────────────────────── */
+Chart.defaults.color='#8b949e';
+Chart.defaults.borderColor='#21262d';
+const CC={};
+const kill=id=>{if(CC[id]){CC[id].destroy();delete CC[id];}};
+const $=id=>document.getElementById(id);
+const fmt=n=>n==null?'—':Number(n).toLocaleString('en',{maximumFractionDigits:0});
+const fmtR=n=>n==null?'—':'$'+Number(n).toLocaleString('en',{minimumFractionDigits:2,maximumFractionDigits:2});
+const fmtK=n=>{if(n==null)return'—';n=Number(n);if(n>=1e6)return'$'+(n/1e6).toFixed(2)+'M';if(n>=1e3)return'$'+(n/1e3).toFixed(1)+'K';return'$'+n.toFixed(0);}
+const ld=el=>{el.innerHTML='<div class="ld"><div class="spin"></div></div>';};
+const er=(el,e)=>{el.innerHTML=`<div class="err">⚠ ${e}</div>`;};
+
+function base(){return $('api-input').value.replace(/\/$/,'');}
+async function api(ep){const r=await fetch(base()+ep);if(!r.ok)throw new Error('HTTP '+r.status);return r.json();}
+
+function setStatus(ok,msg=''){
+  $('sdot').className='dot'+(ok?'':' off');
+  $('stxt').textContent=ok?'API Connected':'Error: '+msg;
+  if(ok)$('sup').textContent='Updated '+new Date().toLocaleTimeString();
+}
+
+/* ── TABS ──────────────────────────────────────────────── */
+const loaded={};
+function goTab(name,el){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  document.querySelectorAll('.tab-content').forEach(c=>c.classList.remove('active'));
+  $('tab-'+name).classList.add('active');
+  if(!loaded[name]){loaded[name]=true;
+    ({daily:loadDaily,products:loadProducts,payments:loadPayments,
+      reviews:loadReviews,sellers:loadSellers,sales:loadSales}[name]||(() =>{}))();
+  }
+}
+
+/* ── CHART HELPERS ─────────────────────────────────────── */
+function mkLine(id,labels,data,color,prefix=''){
+  kill(id);
+  CC[id]=new Chart($(id),{type:'line',
+    data:{labels,datasets:[{data,borderColor:color,backgroundColor:color+'18',
+      fill:true,tension:.35,pointRadius:2,pointHoverRadius:5,borderWidth:2}]},
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>prefix+fmt(c.parsed.y)}}},
+      scales:{x:{grid:{color:'#21262d'},ticks:{maxTicksLimit:12,maxRotation:45}},
+              y:{grid:{color:'#21262d'},beginAtZero:false,ticks:{callback:v=>prefix+fmt(v)}}}}});
+}
+
+function mkBar(id,labels,data,color,horizontal=true){
+  kill(id);
+  CC[id]=new Chart($(id),{type:'bar',
+    data:{labels,datasets:[{data,backgroundColor:color+'aa',borderColor:color,borderWidth:1,borderRadius:4}]},
+    options:{indexAxis:horizontal?'y':'x',responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false}},
+      scales:{x:{grid:{color:'#21262d'},beginAtZero:true},
+              y:{grid:{display:!horizontal,color:'#21262d'},ticks:{font:{size:11}}}}}});
+}
+
+function mkDoughnut(id,labels,data,colors){
+  kill(id);
+  CC[id]=new Chart($(id),{type:'doughnut',
+    data:{labels,datasets:[{data,backgroundColor:colors,borderColor:'#161b22',borderWidth:3}]},
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{position:'bottom',labels:{padding:14,font:{size:11}}}}}});
+}
+
+function mkStacked(id,labels,datasets){
+  kill(id);
+  CC[id]=new Chart($(id),{type:'bar',
+    data:{labels,datasets},
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{position:'bottom',labels:{padding:14,font:{size:11}}}},
+      scales:{x:{stacked:true,grid:{color:'#21262d'},ticks:{maxTicksLimit:14,maxRotation:45}},
+              y:{stacked:true,grid:{color:'#21262d'}}}}});
+}
+
+/* ══ OVERVIEW ════════════════════════════════════════════ */
+async function loadOverview(){
+  try{
+    const [sum,reg]=await Promise.all([api('/api/summary'),api('/api/region')]);
+    const totRev=sum.reduce((s,r)=>s+parseFloat(r.total_revenue||0),0);
+    const totOrd=sum.reduce((s,r)=>s+parseInt(r.total_orders||0),0);
+    const totItm=sum.reduce((s,r)=>s+parseInt(r.total_items_sold||0),0);
+    const aov=totOrd?totRev/totOrd:0;
+    $('kpis').innerHTML=`
+      <div class="kpi r"><div class="kpi-lbl">Total Revenue</div><div class="kpi-val">${fmtK(totRev)}</div><div class="kpi-sub">${sum.length} months</div></div>
+      <div class="kpi b"><div class="kpi-lbl">Total Orders</div><div class="kpi-val">${fmt(totOrd)}</div><div class="kpi-sub">All time</div></div>
+      <div class="kpi g"><div class="kpi-lbl">Items Sold</div><div class="kpi-val">${fmt(totItm)}</div><div class="kpi-sub">Line items</div></div>
+      <div class="kpi y"><div class="kpi-lbl">Avg Order Value</div><div class="kpi-val">${fmtR(aov)}</div><div class="kpi-sub">Revenue ÷ orders</div></div>`;
+    const lbl=sum.map(r=>`${r.year}-${String(r.month).padStart(2,'0')}`);
+    $('w-rev').innerHTML='<canvas id="c-rev"></canvas>';mkLine('c-rev',lbl,sum.map(r=>parseFloat(r.total_revenue)),'#f78166','$');
+    $('w-ord').innerHTML='<canvas id="c-ord"></canvas>';mkLine('c-ord',lbl,sum.map(r=>parseInt(r.total_orders)),'#58a6ff');
+    $('w-avg').innerHTML='<canvas id="c-avg"></canvas>';mkLine('c-avg',lbl,sum.map(r=>parseFloat(r.avg_order_value)),'#e3b341','$');
+    // Region bars
+    const top8=reg.slice(0,8);const maxR=parseFloat(top8[0]?.total_revenue||1);
+    const bc=['#f78166','#e06a52','#c85a42','#b04a32','#984030','#803020','#682010','#501000'];
+    $('w-region').className='rlist';
+    $('w-region').innerHTML=top8.map((r,i)=>`
+      <div class="rrow">
+        <div class="rhdr"><span class="rname">${r.customer_state}</span><span class="rval">${fmtK(parseFloat(r.total_revenue))}</span></div>
+        <div class="rtrack"><div class="rfill" style="width:${(parseFloat(r.total_revenue)/maxR*100).toFixed(1)}%;background:${bc[i]}"></div></div>
+      </div>`).join('');
+    setStatus(true);
+  }catch(e){setStatus(false,e.message);}
+}
+
+/* ══ DAILY ═══════════════════════════════════════════════ */
+async function loadDaily(){
+  try{
+    const d=await api('/api/daily');
+    const totRev=d.reduce((s,r)=>s+parseFloat(r.total_revenue||0),0);
+    const totOrd=d.reduce((s,r)=>s+parseInt(r.total_orders||0),0);
+    const avg=d.length?totRev/d.length:0;
+    $('daily-kpis').innerHTML=`
+      <div class="kpi r"><div class="kpi-lbl">Active Days</div><div class="kpi-val">${d.length}</div><div class="kpi-sub">Days with orders</div></div>
+      <div class="kpi b"><div class="kpi-lbl">Total Orders</div><div class="kpi-val">${fmt(totOrd)}</div><div class="kpi-sub">All days</div></div>
+      <div class="kpi g"><div class="kpi-lbl">Avg Daily Revenue</div><div class="kpi-val">${fmtK(avg)}</div><div class="kpi-sub">Revenue ÷ days</div></div>`;
+    const lbl=d.map(r=>r.full_date);
+    $('w-drev').innerHTML='<canvas id="c-drev"></canvas>';mkLine('c-drev',lbl,d.map(r=>parseFloat(r.total_revenue)),'#f78166','$');
+    $('w-dord').innerHTML='<canvas id="c-dord"></canvas>';mkLine('c-dord',lbl,d.map(r=>parseInt(r.total_orders)),'#58a6ff');
+  }catch(e){er($('w-drev'),e.message);}
+}
+
+/* ══ PRODUCTS ════════════════════════════════════════════ */
+async function loadProducts(){
+  try{
+    const d=await api('/api/top_products');
+    const t10=d.slice(0,10);
+    $('w-cat').innerHTML='<canvas id="c-cat"></canvas>';
+    mkBar('c-cat',t10.map(r=>(r.product_category_name_english||'Unknown').replace(/_/g,' ')),
+      t10.map(r=>parseFloat(r.total_revenue)),'#f78166');
+    const sc={'In Stock':0,'Low Stock':0,'Out of Stock':0};
+    d.forEach(r=>{if(sc[r.stock_status]!==undefined)sc[r.stock_status]++;});
+    $('w-stock').innerHTML='<canvas id="c-stock"></canvas>';
+    mkDoughnut('c-stock',Object.keys(sc),Object.values(sc),['#3fb950','#e3b341','#f85149']);
+    $('w-ptable').innerHTML=`<table><thead><tr>
+      <th>#</th><th>Category</th><th>Units</th><th>Orders</th><th>Revenue</th><th>Avg Price</th><th>Stock</th>
+      </tr></thead><tbody>${d.map((r,i)=>`<tr>
+        <td style="color:var(--muted)">${i+1}</td>
+        <td>${(r.product_category_name_english||'—').replace(/_/g,' ')}</td>
+        <td>${fmt(r.total_units_sold)}</td><td>${fmt(r.total_orders)}</td>
+        <td style="font-family:var(--mono)">${fmtR(r.total_revenue)}</td>
+        <td>${fmtR(r.avg_price)}</td>
+        <td>${stB(r.stock_status)}</td></tr>`).join('')}</tbody></table>`;
+  }catch(e){er($('w-cat'),e.message);}
+}
+function stB(s){const m={'In Stock':'bg','Low Stock':'by','Out of Stock':'br'};return`<span class="badge ${m[s]||'bb'}">${s||'—'}</span>`;}
+
+/* ══ PAYMENTS ════════════════════════════════════════════ */
+async function loadPayments(){
+  try{
+    const [pay,inst]=await Promise.all([api('/api/payments'),api('/api/payments/installments')]);
+    // Cards
+    const pc=['#f78166','#58a6ff','#3fb950','#e3b341'];
+    $('w-paycards').className='pay-grid';
+    $('w-paycards').innerHTML=pay.map((r,i)=>`
+      <div class="pay-card" style="border-top:2px solid ${pc[i]||'#8b949e'}">
+        <div class="pay-type">${r.payment_type.replace(/_/g,' ')}</div>
+        <div class="pay-rev">${fmtK(parseFloat(r.total_revenue))}</div>
+        <div class="pay-sub">${fmt(r.total_orders)} orders · avg ${fmtR(r.avg_payment_value)}</div>
+        <div class="pay-sub">Avg ${parseFloat(r.avg_installments).toFixed(1)} installments</div>
+      </div>`).join('');
+    // Revenue donut
+    $('w-payrev').innerHTML='<canvas id="c-payrev"></canvas>';
+    mkDoughnut('c-payrev',pay.map(r=>r.payment_type.replace(/_/g,' ')),
+      pay.map(r=>parseFloat(r.total_revenue)),pc);
+    // Installments bar (up to 12)
+    const inst12=inst.filter(r=>r.payment_installments<=12);
+    $('w-install').innerHTML='<canvas id="c-install"></canvas>';
+    mkBar('c-install',inst12.map(r=>r.payment_installments+' inst.'),
+      inst12.map(r=>parseInt(r.total_transactions)),'#bc8cff',false);
+    // Table
+    $('w-paytable').innerHTML=`<table><thead><tr>
+      <th>Payment Type</th><th>Transactions</th><th>Orders</th><th>Revenue</th><th>Avg Value</th><th>Avg Installments</th>
+      </tr></thead><tbody>${pay.map(r=>`<tr>
+        <td><span class="badge bb">${r.payment_type.replace(/_/g,' ')}</span></td>
+        <td>${fmt(r.total_transactions)}</td><td>${fmt(r.total_orders)}</td>
+        <td style="font-family:var(--mono);color:var(--accent)">${fmtR(r.total_revenue)}</td>
+        <td>${fmtR(r.avg_payment_value)}</td>
+        <td style="font-family:var(--mono)">${parseFloat(r.avg_installments).toFixed(1)}</td>
+      </tr>`).join('')}</tbody></table>`;
+  }catch(e){er($('w-paycards'),e.message);}
+}
+
+/* ══ REVIEWS ═════════════════════════════════════════════ */
+async function loadReviews(){
+  try{
+    const [monthly,scores]=await Promise.all([api('/api/reviews'),api('/api/reviews/scores')]);
+    // Overall score big
+    const totalR=scores.reduce((s,r)=>s+parseInt(r.total),0);
+    const wavg=scores.reduce((s,r)=>s+parseInt(r.review_score)*parseInt(r.total),0)/totalR;
+    const stars='★'.repeat(Math.round(wavg))+'☆'.repeat(5-Math.round(wavg));
+    $('w-score-big').className='score-big';
+    $('w-score-big').innerHTML=`
+      <div class="score-num">${wavg.toFixed(2)}</div>
+      <div class="score-stars" style="color:var(--warn)">${stars}</div>
+      <div class="score-sub">${fmt(totalR)} total reviews</div>`;
+    // Star bars
+    const maxS=Math.max(...scores.map(r=>parseInt(r.total)));
+    $('w-stars').className='stars';
+    $('w-stars').innerHTML=[5,4,3,2,1].map(n=>{
+      const row=scores.find(r=>parseInt(r.review_score)===n)||{total:0,percentage:0};
+      return`<div class="star-row">
+        <div class="star-lbl">${'★'.repeat(n)}</div>
+        <div class="star-bar"><div class="star-fill" style="width:${(parseInt(row.total)/maxS*100).toFixed(1)}%"></div></div>
+        <div class="star-cnt">${fmt(row.total)} <span style="color:var(--muted)">(${parseFloat(row.percentage).toFixed(1)}%)</span></div>
+      </div>`;}).join('');
+    // Monthly count
+    const lbl=monthly.map(r=>`${r.year}-${String(r.month).padStart(2,'0')}`);
+    $('w-revcount').innerHTML='<canvas id="c-rvcnt"></canvas>';
+    mkLine('c-rvcnt',lbl,monthly.map(r=>parseInt(r.total_reviews)),'#bc8cff');
+    $('w-revscore').innerHTML='<canvas id="c-rvscore"></canvas>';
+    mkLine('c-rvscore',lbl,monthly.map(r=>parseFloat(r.avg_score)),'#e3b341');
+    // Stacked score by month
+    $('w-revstack').innerHTML='<canvas id="c-rvstk"></canvas>';
+    const sc=['#3fb950','#58a6ff','#e3b341','#f78166','#f85149'];
+    mkStacked('c-rvstk',lbl,[
+      {label:'5★',data:monthly.map(r=>r.score_5),backgroundColor:sc[0]},
+      {label:'4★',data:monthly.map(r=>r.score_4),backgroundColor:sc[1]},
+      {label:'3★',data:monthly.map(r=>r.score_3),backgroundColor:sc[2]},
+      {label:'2★',data:monthly.map(r=>r.score_2),backgroundColor:sc[3]},
+      {label:'1★',data:monthly.map(r=>r.score_1),backgroundColor:sc[4]},
+    ]);
+  }catch(e){er($('w-score-big'),e.message);}
+  try{
+    const comments=await api('/api/reviews/comments');
+    const withText=comments.filter(r=>r.review_comment_title||r.review_comment_message);
+    $('w-revcomments').innerHTML=`<table><thead><tr>
+      <th>Score</th><th>Title</th><th>Comment</th><th>Date</th>
+      </tr></thead><tbody>${withText.map(r=>`<tr>
+        <td>${'★'.repeat(r.review_score)}</td>
+        <td>${r.review_comment_title||'—'}</td>
+        <td style="color:var(--muted)">${r.review_comment_message||'—'}</td>
+        <td style="font-size:12px;color:var(--muted)">${(r.review_creation_date||'').slice(0,10)}</td>
+      </tr>`).join('')}</tbody></table>`;
+  }catch(e){er($('w-revcomments'),e.message);}
+}
+
+/* ══ SELLERS ═════════════════════════════════════════════ */
+async function loadSellers(){
+  try{
+    const [sels,reg]=await Promise.all([api('/api/sellers'),api('/api/region')]);
+    const t10=sels.slice(0,10);
+    $('w-selbar').innerHTML='<canvas id="c-selb"></canvas>';
+    mkBar('c-selb',t10.map(r=>r.seller_city+' ('+r.seller_state+')'),
+      t10.map(r=>parseFloat(r.total_revenue)),'#58a6ff');
+    const t6=reg.slice(0,6);
+    $('w-selstate').innerHTML='<canvas id="c-selst"></canvas>';
+    mkDoughnut('c-selst',t6.map(r=>r.customer_state),t6.map(r=>parseFloat(r.total_revenue)),
+      ['#f78166','#58a6ff','#3fb950','#e3b341','#bc8cff','#ff7b72']);
+    $('w-selcards').className='seller-grid';
+    $('w-selcards').innerHTML=sels.map(r=>`
+      <div class="sc">
+        <div class="sc-city">${r.seller_city}</div>
+<div class="sc-id" style="font-size:11px;color:var(--muted);font-family:monospace;margin-top:2px;">${r.seller_id.slice(0,8)}…</div>
+        <div class="sc-state">${r.seller_state}</div>
+        <div class="sc-rev">${fmtK(parseFloat(r.total_revenue))}</div>
+        <div class="sc-sub">${fmt(r.total_orders)} orders · ${fmt(r.total_items)} items</div>
+      </div>`).join('');
+  }catch(e){er($('w-selbar'),e.message);}
+}
+
+/* ══ SALES ═══════════════════════════════════════════════ */
+async function loadSales(){
+  try{
+    const d=await api('/api/sales');
+    $('w-sales').innerHTML=`<table><thead><tr>
+      <th>Order ID</th><th>Customer</th><th>Product</th><th>Status</th>
+      <th>Price</th><th>Freight</th><th>Total</th><th>Date Key</th>
+      </tr></thead><tbody>${d.map(r=>`<tr>
+        <td style="font-family:var(--mono);font-size:11px;color:var(--muted)">${(r.order_id||'').slice(0,10)}…</td>
+        <td style="font-family:var(--mono);font-size:11px;color:var(--muted)">${(r.customer_id||'').slice(0,10)}…</td>
+        <td style="font-family:var(--mono);font-size:11px;color:var(--muted)">${(r.product_id||'').slice(0,10)}…</td>
+        <td>${stOrd(r.order_status)}</td>
+        <td>${fmtR(r.price)}</td><td>${fmtR(r.freight_value)}</td>
+        <td style="font-family:var(--mono);font-weight:700;color:var(--accent)">${fmtR(r.total_amount)}</td>
+        <td style="color:var(--muted);font-size:12px">${r.order_purchase_date_key||'—'}</td>
+      </tr>`).join('')}</tbody></table>`;
+  }catch(e){er($('w-sales'),e.message);}
+}
+function stOrd(s){const m={delivered:'bg',shipped:'bb',canceled:'br',processing:'by',invoiced:'by'};
+  return`<span class="badge ${m[s]||'bb'}">${s||'—'}</span>`;}
+
+/* ── INIT ─────────────────────────────────────────────── */
+async function loadAll(){
+  ['daily','products','payments','reviews','sellers','sales'].forEach(k=>loaded[k]=false);
+  loaded['overview']=true;
+  await loadOverview();
+}
+loadAll();
+</script>
+</body>
+</html>

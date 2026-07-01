@@ -1,0 +1,17 @@
+[2026-06-29T13:15:32.374+0000] {local_task_job_runner.py:120} INFO - ::group::Pre task execution logs
+[2026-06-29T13:15:32.434+0000] {taskinstance.py:2076} INFO - Dependencies all met for dep_context=non-requeueable deps ti=<TaskInstance: staging_pipeline.trigger_dw_pipeline scheduled__2026-06-29T13:10:00+00:00 [queued]>
+[2026-06-29T13:15:32.455+0000] {taskinstance.py:2076} INFO - Dependencies all met for dep_context=requeueable deps ti=<TaskInstance: staging_pipeline.trigger_dw_pipeline scheduled__2026-06-29T13:10:00+00:00 [queued]>
+[2026-06-29T13:15:32.457+0000] {taskinstance.py:2306} INFO - Starting attempt 1 of 2
+[2026-06-29T13:15:32.487+0000] {taskinstance.py:2330} INFO - Executing <Task(TriggerDagRunOperator): trigger_dw_pipeline> on 2026-06-29 13:10:00+00:00
+[2026-06-29T13:15:32.512+0000] {standard_task_runner.py:90} INFO - Running: ['***', 'tasks', 'run', 'staging_pipeline', 'trigger_dw_pipeline', 'scheduled__2026-06-29T13:10:00+00:00', '--job-id', '690', '--raw', '--subdir', 'DAGS_FOLDER/staging_dag.py', '--cfg-path', '/tmp/tmpbj2mwmhj']
+[2026-06-29T13:15:32.518+0000] {standard_task_runner.py:91} INFO - Job 690: Subtask trigger_dw_pipeline
+[2026-06-29T13:15:32.518+0000] {logging_mixin.py:188} WARNING - /home/***/.local/lib/python3.12/site-packages/***/task/task_runner/standard_task_runner.py:62 DeprecationWarning: This process (pid=362) is multi-threaded, use of fork() may lead to deadlocks in the child.
+[2026-06-29T13:15:32.521+0000] {standard_task_runner.py:64} INFO - Started process 364 to run task
+[2026-06-29T13:15:32.581+0000] {task_command.py:426} INFO - Running <TaskInstance: staging_pipeline.trigger_dw_pipeline scheduled__2026-06-29T13:10:00+00:00 [running]> on host 07e54d19aa44
+[2026-06-29T13:15:32.916+0000] {taskinstance.py:2648} INFO - Exporting env vars: AIRFLOW_CTX_DAG_OWNER='***' AIRFLOW_CTX_DAG_ID='staging_pipeline' AIRFLOW_CTX_TASK_ID='trigger_dw_pipeline' AIRFLOW_CTX_EXECUTION_DATE='2026-06-29T13:10:00+00:00' AIRFLOW_CTX_TRY_NUMBER='1' AIRFLOW_CTX_DAG_RUN_ID='scheduled__2026-06-29T13:10:00+00:00'
+[2026-06-29T13:15:32.919+0000] {taskinstance.py:430} INFO - ::endgroup::
+[2026-06-29T13:15:33.028+0000] {taskinstance.py:441} INFO - ::group::Post task execution logs
+[2026-06-29T13:15:33.048+0000] {taskinstance.py:1206} INFO - Marking task as SUCCESS. dag_id=staging_pipeline, task_id=trigger_dw_pipeline, run_id=scheduled__2026-06-29T13:10:00+00:00, execution_date=20260629T131000, start_date=20260629T131532, end_date=20260629T131533
+[2026-06-29T13:15:33.100+0000] {local_task_job_runner.py:243} INFO - Task exited with return code 0
+[2026-06-29T13:15:33.134+0000] {taskinstance.py:3503} INFO - 0 downstream tasks scheduled from follow-on schedule check
+[2026-06-29T13:15:33.141+0000] {local_task_job_runner.py:222} INFO - ::endgroup::

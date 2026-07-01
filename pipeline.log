@@ -1,0 +1,246 @@
+2026-06-25 02:58:51,964 - INFO - Starting ETL Pipeline - 2026-06-25 02:58:51
+2026-06-25 02:58:52,071 - INFO - Step 1: Loading CSV files into staging
+2026-06-25 02:58:56,044 - INFO -   staging.customers -> 99,441 rows
+2026-06-25 02:59:00,886 - INFO -   staging.orders -> 99,441 rows
+2026-06-25 02:59:07,700 - INFO -   staging.order_items -> 112,650 rows
+2026-06-25 02:59:10,019 - INFO -   staging.products -> 32,951 rows
+2026-06-25 02:59:10,221 - INFO -   staging.sellers -> 3,095 rows
+2026-06-25 02:59:14,549 - INFO -   staging.order_payments -> 103,886 rows
+2026-06-25 02:59:19,240 - INFO -   staging.order_reviews -> 99,224 rows
+2026-06-25 02:59:19,304 - INFO -   staging.category_translation -> 71 rows
+2026-06-25 02:59:19,304 - INFO - Step 1 done
+
+2026-06-25 02:59:19,304 - INFO - Step 2: Cleaning data
+2026-06-25 02:59:22,259 - INFO - Step 2 done
+
+2026-06-25 02:59:22,259 - INFO - Step 3: Filling Dimension Tables
+2026-06-25 02:59:24,515 - INFO -   dim_customers done
+2026-06-25 02:59:25,513 - INFO -   dim_products done
+2026-06-25 02:59:25,576 - INFO -   dim_sellers done
+2026-06-25 02:59:29,764 - INFO -   dim_date done
+2026-06-25 02:59:29,764 - INFO -   fact_order_payments table ready
+2026-06-25 02:59:29,764 - INFO -   fact_order_reviews table ready
+2026-06-25 02:59:29,910 - INFO - Step 3 done
+
+2026-06-25 02:59:29,910 - INFO - Step 4: Filling fact_order_items
+2026-06-25 02:59:49,334 - INFO -   fact_order_items: 112,650 rows
+2026-06-25 02:59:56,140 - INFO -   fact_order_payments: 103,886 rows
+2026-06-25 02:59:58,528 - ERROR - Error: (psycopg2.errors.UniqueViolation) duplicate key value violates unique constraint "fact_order_reviews_pkey"
+DETAIL:  Key (review_id)=(1775bd097716d67420d128df008252eb) already exists.
+
+[SQL: 
+            INSERT INTO dw.fact_order_reviews
+                (review_id, order_id, order_purchase_date_key,
+                 review_score, review_comment_title, review_comment_message,
+                 review_creation_date, review_answer_timestamp)
+            SELECT
+                r.review_id,
+                r.order_id,
+                TO_CHAR(o.order_purchase_timestamp::TIMESTAMP::DATE, 'YYYYMMDD')::INT,
+                r.review_score,
+                r.review_comment_title,
+                r.review_comment_message,
+                r.review_creation_date::TIMESTAMP,
+                r.review_answer_timestamp::TIMESTAMP
+            FROM staging.order_reviews r
+            JOIN staging.orders o ON r.order_id = o.order_id
+        ]
+(Background on this error at: https://sqlalche.me/e/20/gkpj)
+2026-06-25 03:03:54,985 - INFO - Starting ETL Pipeline - 2026-06-25 03:03:54
+2026-06-25 03:03:55,095 - INFO - Step 1: Loading CSV files into staging
+2026-06-25 03:03:58,574 - INFO -   staging.customers -> 99,441 rows
+2026-06-25 03:04:03,846 - INFO -   staging.orders -> 99,441 rows
+2026-06-25 03:04:09,751 - INFO -   staging.order_items -> 112,650 rows
+2026-06-25 03:04:12,126 - INFO -   staging.products -> 32,951 rows
+2026-06-25 03:04:12,348 - INFO -   staging.sellers -> 3,095 rows
+2026-06-25 03:04:16,981 - INFO -   staging.order_payments -> 103,886 rows
+2026-06-25 03:04:23,253 - INFO -   staging.order_reviews -> 99,224 rows
+2026-06-25 03:04:23,301 - INFO -   staging.category_translation -> 71 rows
+2026-06-25 03:04:23,301 - INFO - Step 1 done
+
+2026-06-25 03:04:23,301 - INFO - Step 2: Cleaning data
+2026-06-25 03:04:25,981 - INFO - Step 2 done
+
+2026-06-25 03:04:25,981 - INFO - Step 3: Filling Dimension Tables
+2026-06-25 03:04:28,211 - INFO -   dim_customers done
+2026-06-25 03:04:28,958 - INFO -   dim_products done
+2026-06-25 03:04:28,990 - INFO -   dim_sellers done
+2026-06-25 03:04:32,357 - INFO -   dim_date done
+2026-06-25 03:04:32,357 - INFO -   fact_order_payments table ready
+2026-06-25 03:04:32,357 - INFO -   fact_order_reviews table ready
+2026-06-25 03:04:32,516 - INFO - Step 3 done
+
+2026-06-25 03:04:32,532 - INFO - Step 4: Filling fact_order_items
+2026-06-25 03:04:55,122 - INFO -   fact_order_items: 112,650 rows
+2026-06-25 03:05:00,228 - INFO -   fact_order_payments: 103,886 rows
+2026-06-25 03:05:06,012 - INFO -   fact_order_reviews: 98,410 rows
+2026-06-25 03:05:06,020 - INFO - Step 4 done
+
+2026-06-25 03:05:06,028 - INFO - Step 5: Building Aggregate Tables
+2026-06-25 03:05:06,827 - INFO -   agg_sales_daily: 616 days
+2026-06-25 03:05:08,164 - INFO -   agg_sales_monthly: 24 months
+2026-06-25 03:05:10,792 - INFO -   agg_inventory: 32,951 products
+2026-06-25 03:05:12,336 - INFO -   agg_payment_methods: 5 payment types
+2026-06-25 03:05:12,453 - INFO -   agg_reviews_monthly: 25 months
+2026-06-25 03:05:12,515 - INFO - Step 5 done
+
+2026-06-25 03:05:12,515 - INFO - Pipeline finished successfully! Total time: 0:01:17.529967
+2026-06-28 14:37:12,781 - INFO - Starting ETL Pipeline - 2026-06-28 14:37:12
+2026-06-28 14:37:13,170 - INFO - Step 1: Loading CSV files into staging
+2026-06-28 14:37:16,312 - INFO -   staging.customers -> 99,441 rows
+2026-06-28 14:37:20,814 - INFO -   staging.orders -> 99,441 rows
+2026-06-28 14:37:26,472 - INFO -   staging.order_items -> 112,650 rows
+2026-06-28 14:37:28,487 - INFO -   staging.products -> 32,951 rows
+2026-06-28 14:37:28,671 - INFO -   staging.sellers -> 3,095 rows
+2026-06-28 14:37:31,735 - INFO -   staging.order_payments -> 103,886 rows
+2026-06-28 14:37:35,617 - INFO -   staging.order_reviews -> 99,224 rows
+2026-06-28 14:37:35,667 - INFO -   staging.category_translation -> 71 rows
+2026-06-28 14:37:35,668 - INFO - Step 1 done
+
+2026-06-28 14:37:35,668 - INFO - Step 2: Cleaning data
+2026-06-28 14:37:38,963 - INFO - Step 2 done
+
+2026-06-28 14:37:38,963 - INFO - Step 3: Filling Dimension Tables
+2026-06-28 14:37:41,543 - INFO -   dim_customers done
+2026-06-28 14:37:42,785 - INFO -   dim_products done
+2026-06-28 14:37:42,874 - INFO -   dim_sellers done
+2026-06-28 14:37:47,812 - INFO -   dim_date done
+2026-06-28 14:37:48,200 - INFO - Step 3 done
+
+2026-06-28 14:37:48,201 - INFO - Step 4: Filling Fact Tables
+2026-06-28 14:38:15,741 - INFO -   fact_order_items: 112,650 rows
+2026-06-28 14:38:23,114 - INFO -   fact_order_payments: 103,877 rows
+2026-06-28 14:38:30,669 - INFO -   fact_order_reviews: 98,410 rows
+2026-06-28 14:38:30,686 - INFO - Step 4 done
+
+2026-06-28 14:38:30,687 - INFO - Step 5: Building Aggregate Tables
+2026-06-28 14:38:31,791 - INFO -   agg_sales_daily: 616 days
+2026-06-28 14:38:33,478 - INFO -   agg_sales_monthly: 24 months
+2026-06-28 14:38:35,499 - INFO -   agg_inventory: 32,951 products
+2026-06-28 14:38:37,818 - INFO -   agg_payment_methods: 4 payment types
+2026-06-28 14:38:38,012 - INFO -   agg_reviews_monthly: 25 months
+2026-06-28 14:38:38,056 - INFO - Step 5 done
+
+2026-06-28 14:38:38,057 - INFO - Pipeline finished successfully! Total time: 0:01:25.276487
+2026-06-28 22:55:04,974 - INFO - Starting ETL Pipeline - 2026-06-28 22:55:04
+2026-06-28 22:55:05,100 - INFO - Step 1: Loading CSV files into staging
+2026-06-28 22:55:26,283 - ERROR - Error: (psycopg2.OperationalError) connection to server at "depi1.postgres.database.azure.com" (20.91.202.142), port 5432 failed: Connection timed out (0x0000274C/10060)
+	Is the server running on that host and accepting TCP/IP connections?
+
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-06-28 22:56:22,765 - INFO - Starting ETL Pipeline - 2026-06-28 22:56:22
+2026-06-28 22:56:22,823 - INFO - Step 1: Loading CSV files into staging
+2026-06-28 22:56:22,994 - ERROR - Error: (psycopg2.OperationalError) connection to server at "localhost" (::1), port 5432 failed: server does not support SSL, but SSL was required
+
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-06-28 22:57:35,355 - INFO - Starting ETL Pipeline - 2026-06-28 22:57:35
+2026-06-28 22:57:35,413 - INFO - Step 1: Loading CSV files into staging
+2026-06-28 22:57:38,586 - INFO -   staging.customers -> 99,441 rows
+2026-06-28 22:57:43,240 - INFO -   staging.orders -> 99,441 rows
+2026-06-28 22:57:48,012 - INFO -   staging.order_items -> 112,650 rows
+2026-06-28 22:57:49,931 - INFO -   staging.products -> 32,951 rows
+2026-06-28 22:57:50,185 - INFO -   staging.sellers -> 3,095 rows
+2026-06-28 22:57:54,094 - INFO -   staging.order_payments -> 103,886 rows
+2026-06-28 22:57:58,276 - INFO -   staging.order_reviews -> 99,224 rows
+2026-06-28 22:57:58,314 - INFO -   staging.category_translation -> 71 rows
+2026-06-28 22:57:58,314 - INFO - Step 1 done
+
+2026-06-28 22:57:58,314 - INFO - Step 2: Cleaning data
+2026-06-28 22:58:01,101 - INFO - Step 2 done
+
+2026-06-28 22:58:01,102 - INFO - Step 3: Filling Dimension Tables
+2026-06-28 22:58:03,575 - INFO -   dim_customers done
+2026-06-28 22:58:04,487 - INFO -   dim_products done
+2026-06-28 22:58:04,569 - INFO -   dim_sellers done
+2026-06-28 22:58:08,348 - INFO -   dim_date done
+2026-06-28 22:58:08,632 - INFO - Step 3 done
+
+2026-06-28 22:58:08,632 - INFO - Step 4: Filling Fact Tables
+2026-06-28 22:58:28,761 - INFO -   fact_order_items: 112,650 rows
+2026-06-28 22:58:33,898 - INFO -   fact_order_payments: 103,877 rows
+2026-06-28 22:58:39,382 - INFO -   fact_order_reviews: 98,410 rows
+2026-06-28 22:58:39,392 - INFO - Step 4 done
+
+2026-06-28 22:58:39,392 - INFO - Step 5: Building Aggregate Tables
+2026-06-28 22:58:40,236 - INFO -   agg_sales_daily: 616 days
+2026-06-28 22:58:41,517 - INFO -   agg_sales_monthly: 24 months
+2026-06-28 22:58:43,891 - INFO -   agg_inventory: 32,951 products
+2026-06-28 22:58:45,526 - INFO -   agg_payment_methods: 4 payment types
+2026-06-28 22:58:45,639 - INFO -   agg_reviews_monthly: 25 months
+2026-06-28 22:58:45,682 - INFO - Step 5 done
+
+2026-06-28 22:58:45,682 - INFO - Pipeline finished successfully! Total time: 0:01:10.327264
+2026-06-30 15:26:48,806 - INFO - Starting ETL Pipeline - 2026-06-30 15:26:48
+2026-06-30 15:26:48,863 - INFO - Step 1: Loading CSV files into staging
+2026-06-30 15:26:51,134 - INFO -   staging.customers -> 99,441 rows
+2026-06-30 15:26:54,155 - INFO -   staging.orders -> 99,441 rows
+2026-06-30 15:26:57,590 - INFO -   staging.order_items -> 112,650 rows
+2026-06-30 15:26:58,804 - INFO -   staging.products -> 32,951 rows
+2026-06-30 15:26:58,909 - INFO -   staging.sellers -> 3,095 rows
+2026-06-30 15:27:00,941 - INFO -   staging.order_payments -> 103,886 rows
+2026-06-30 15:27:03,575 - INFO -   staging.order_reviews -> 99,224 rows
+2026-06-30 15:27:03,606 - INFO -   staging.category_translation -> 71 rows
+2026-06-30 15:27:03,606 - INFO - Step 1 done
+
+2026-06-30 15:27:03,606 - INFO - Step 2: Cleaning data
+2026-06-30 15:27:05,759 - INFO - Step 2 done
+
+2026-06-30 15:27:05,759 - INFO - Step 3: Filling Dimension Tables
+2026-06-30 15:27:07,030 - INFO -   dim_customers done
+2026-06-30 15:27:07,475 - INFO -   dim_products done
+2026-06-30 15:27:07,508 - INFO -   dim_sellers done
+2026-06-30 15:27:09,330 - INFO -   dim_date done
+2026-06-30 15:27:09,459 - INFO - Step 3 done
+
+2026-06-30 15:27:09,459 - INFO - Step 4: Filling Fact Tables
+2026-06-30 15:27:18,669 - INFO -   fact_order_items: 112,650 rows
+2026-06-30 15:27:21,213 - INFO -   fact_order_payments: 103,877 rows
+2026-06-30 15:27:25,057 - INFO -   fact_order_reviews: 98,410 rows
+2026-06-30 15:27:25,063 - INFO - Step 4 done
+
+2026-06-30 15:27:25,063 - INFO - Step 5: Building Aggregate Tables
+2026-06-30 15:27:25,362 - INFO -   agg_sales_daily: 616 days
+2026-06-30 15:27:25,886 - INFO -   agg_sales_monthly: 24 months
+2026-06-30 15:27:26,848 - INFO -   agg_inventory: 32,951 products
+2026-06-30 15:27:27,400 - INFO -   agg_payment_methods: 4 payment types
+2026-06-30 15:27:27,441 - INFO -   agg_reviews_monthly: 25 months
+2026-06-30 15:27:27,471 - INFO - Step 5 done
+
+2026-06-30 15:27:27,471 - INFO - Pipeline finished successfully! Total time: 0:00:38.665141
+2026-06-30 17:06:00,873 - INFO - Starting ETL Pipeline - 2026-06-30 17:06:00
+2026-06-30 17:06:00,964 - INFO - Step 1: Loading CSV files into staging
+2026-06-30 17:06:04,672 - INFO -   staging.customers -> 99,441 rows
+2026-06-30 17:06:11,671 - INFO -   staging.orders -> 99,441 rows
+2026-06-30 17:06:20,017 - INFO -   staging.order_items -> 112,650 rows
+2026-06-30 17:06:22,489 - INFO -   staging.products -> 32,951 rows
+2026-06-30 17:06:22,705 - INFO -   staging.sellers -> 3,095 rows
+2026-06-30 17:06:27,472 - INFO -   staging.order_payments -> 103,886 rows
+2026-06-30 17:06:31,714 - INFO -   staging.order_reviews -> 99,224 rows
+2026-06-30 17:06:31,762 - INFO -   staging.category_translation -> 71 rows
+2026-06-30 17:06:31,762 - INFO - Step 1 done
+
+2026-06-30 17:06:31,763 - INFO - Step 2: Cleaning data
+2026-06-30 17:06:35,022 - INFO - Step 2 done
+
+2026-06-30 17:06:35,022 - INFO - Step 3: Filling Dimension Tables
+2026-06-30 17:06:37,259 - INFO -   dim_customers done
+2026-06-30 17:06:37,929 - INFO -   dim_products done
+2026-06-30 17:06:37,978 - INFO -   dim_sellers done
+2026-06-30 17:06:41,429 - INFO -   dim_date done
+2026-06-30 17:06:41,814 - INFO - Step 3 done
+
+2026-06-30 17:06:41,814 - INFO - Step 4: Filling Fact Tables
+2026-06-30 17:07:00,094 - INFO -   fact_order_items: 112,650 rows
+2026-06-30 17:07:06,526 - INFO -   fact_order_payments: 103,877 rows
+2026-06-30 17:07:14,540 - INFO -   fact_order_reviews: 98,410 rows
+2026-06-30 17:07:14,554 - INFO - Step 4 done
+
+2026-06-30 17:07:14,554 - INFO - Step 5: Building Aggregate Tables
+2026-06-30 17:07:15,300 - INFO -   agg_sales_daily: 616 days
+2026-06-30 17:07:16,540 - INFO -   agg_sales_monthly: 24 months
+2026-06-30 17:07:18,558 - INFO -   agg_inventory: 32,951 products
+2026-06-30 17:07:19,882 - INFO -   agg_payment_methods: 4 payment types
+2026-06-30 17:07:19,965 - INFO -   agg_reviews_monthly: 25 months
+2026-06-30 17:07:20,010 - INFO - Step 5 done
+
+2026-06-30 17:07:20,010 - INFO - Pipeline finished successfully! Total time: 0:01:19.136605
