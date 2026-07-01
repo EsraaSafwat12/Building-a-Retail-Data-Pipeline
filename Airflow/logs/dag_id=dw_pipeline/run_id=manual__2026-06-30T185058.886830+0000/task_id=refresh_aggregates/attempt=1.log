@@ -1,0 +1,95 @@
+[2026-06-30T21:39:02.992+0000] {local_task_job_runner.py:120} INFO - ::group::Pre task execution logs
+[2026-06-30T21:39:03.230+0000] {taskinstance.py:2076} INFO - Dependencies all met for dep_context=non-requeueable deps ti=<TaskInstance: dw_pipeline.refresh_aggregates manual__2026-06-30T18:50:58.886830+00:00 [queued]>
+[2026-06-30T21:39:03.296+0000] {taskinstance.py:2076} INFO - Dependencies all met for dep_context=requeueable deps ti=<TaskInstance: dw_pipeline.refresh_aggregates manual__2026-06-30T18:50:58.886830+00:00 [queued]>
+[2026-06-30T21:39:03.302+0000] {taskinstance.py:2306} INFO - Starting attempt 1 of 2
+[2026-06-30T21:39:03.385+0000] {taskinstance.py:2330} INFO - Executing <Task(PythonOperator): refresh_aggregates> on 2026-06-30 18:50:58.886830+00:00
+[2026-06-30T21:39:03.416+0000] {standard_task_runner.py:90} INFO - Running: ['***', 'tasks', 'run', 'dw_pipeline', 'refresh_aggregates', 'manual__2026-06-30T18:50:58.886830+00:00', '--job-id', '830', '--raw', '--subdir', 'DAGS_FOLDER/dw_dag.py', '--cfg-path', '/tmp/tmpckd6hi24']
+[2026-06-30T21:39:03.432+0000] {standard_task_runner.py:91} INFO - Job 830: Subtask refresh_aggregates
+[2026-06-30T21:39:03.440+0000] {logging_mixin.py:188} WARNING - /home/***/.local/lib/python3.12/site-packages/***/task/task_runner/standard_task_runner.py:62 DeprecationWarning: This process (pid=12893) is multi-threaded, use of fork() may lead to deadlocks in the child.
+[2026-06-30T21:39:03.454+0000] {standard_task_runner.py:64} INFO - Started process 12898 to run task
+[2026-06-30T21:39:03.611+0000] {task_command.py:426} INFO - Running <TaskInstance: dw_pipeline.refresh_aggregates manual__2026-06-30T18:50:58.886830+00:00 [running]> on host 07e54d19aa44
+[2026-06-30T21:39:03.992+0000] {taskinstance.py:2648} INFO - Exporting env vars: AIRFLOW_CTX_DAG_OWNER='***' AIRFLOW_CTX_DAG_ID='dw_pipeline' AIRFLOW_CTX_TASK_ID='refresh_aggregates' AIRFLOW_CTX_EXECUTION_DATE='2026-06-30T18:50:58.886830+00:00' AIRFLOW_CTX_TRY_NUMBER='1' AIRFLOW_CTX_DAG_RUN_ID='manual__2026-06-30T18:50:58.886830+00:00'
+[2026-06-30T21:39:04.000+0000] {taskinstance.py:430} INFO - ::endgroup::
+[2026-06-30T21:39:29.830+0000] {taskinstance.py:441} INFO - ::group::Post task execution logs
+[2026-06-30T21:39:29.841+0000] {taskinstance.py:2905} ERROR - Task failed with exception
+Traceback (most recent call last):
+  File "/home/airflow/.local/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 1910, in _execute_context
+    self.dialect.do_execute(
+  File "/home/airflow/.local/lib/python3.12/site-packages/sqlalchemy/engine/default.py", line 736, in do_execute
+    cursor.execute(statement, parameters)
+psycopg2.OperationalError: server closed the connection unexpectedly
+	This probably means the server terminated abnormally
+	before or while processing the request.
+
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/airflow/.local/lib/python3.12/site-packages/airflow/models/taskinstance.py", line 465, in _execute_task
+    result = _execute_callable(context=context, **execute_callable_kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/airflow/.local/lib/python3.12/site-packages/airflow/models/taskinstance.py", line 432, in _execute_callable
+    return execute_callable(context=context, **execute_callable_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/airflow/.local/lib/python3.12/site-packages/airflow/models/baseoperator.py", line 401, in wrapper
+    return func(self, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/airflow/.local/lib/python3.12/site-packages/airflow/operators/python.py", line 235, in execute
+    return_value = self.execute_callable()
+                   ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/airflow/.local/lib/python3.12/site-packages/airflow/operators/python.py", line 252, in execute_callable
+    return self.python_callable(*self.op_args, **self.op_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/airflow/dags/dw_dag.py", line 247, in task6_refresh_aggregates
+    conn.execute(text("""
+  File "/home/airflow/.local/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 1385, in execute
+    return meth(self, multiparams, params, _EMPTY_EXECUTION_OPTS)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/airflow/.local/lib/python3.12/site-packages/sqlalchemy/sql/elements.py", line 334, in _execute_on_connection
+    return connection._execute_clauseelement(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/airflow/.local/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 1577, in _execute_clauseelement
+    ret = self._execute_context(
+          ^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/airflow/.local/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 1953, in _execute_context
+    self._handle_dbapi_exception(
+  File "/home/airflow/.local/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 2134, in _handle_dbapi_exception
+    util.raise_(
+  File "/home/airflow/.local/lib/python3.12/site-packages/sqlalchemy/util/compat.py", line 211, in raise_
+    raise exception
+  File "/home/airflow/.local/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 1910, in _execute_context
+    self.dialect.do_execute(
+  File "/home/airflow/.local/lib/python3.12/site-packages/sqlalchemy/engine/default.py", line 736, in do_execute
+    cursor.execute(statement, parameters)
+sqlalchemy.exc.OperationalError: (psycopg2.OperationalError) server closed the connection unexpectedly
+	This probably means the server terminated abnormally
+	before or while processing the request.
+
+[SQL: 
+            INSERT INTO dw.agg_sales_daily (full_date, total_orders, total_items_sold, total_revenue, avg_order_value)
+            SELECT d.full_date, COUNT(DISTINCT f.order_id), COUNT(*),
+                ROUND(SUM(f.total_amount)::NUMERIC, 2),
+                ROUND(SUM(f.total_amount) / COUNT(DISTINCT f.order_id), 2)
+            FROM dw.fact_order_items f
+            JOIN dw.dim_date d ON f.order_purchase_date_key = d.date_key
+            GROUP BY d.full_date ORDER BY d.full_date
+        ]
+(Background on this error at: https://sqlalche.me/e/14/e3q8)
+[2026-06-30T21:39:29.945+0000] {taskinstance.py:1206} INFO - Marking task as UP_FOR_RETRY. dag_id=dw_pipeline, task_id=refresh_aggregates, run_id=manual__2026-06-30T18:50:58.886830+00:00, execution_date=20260630T185058, start_date=20260630T213903, end_date=20260630T213929
+[2026-06-30T21:39:30.019+0000] {standard_task_runner.py:110} ERROR - Failed to execute job 830 for task refresh_aggregates ((psycopg2.OperationalError) server closed the connection unexpectedly
+	This probably means the server terminated abnormally
+	before or while processing the request.
+
+[SQL: 
+            INSERT INTO dw.agg_sales_daily (full_date, total_orders, total_items_sold, total_revenue, avg_order_value)
+            SELECT d.full_date, COUNT(DISTINCT f.order_id), COUNT(*),
+                ROUND(SUM(f.total_amount)::NUMERIC, 2),
+                ROUND(SUM(f.total_amount) / COUNT(DISTINCT f.order_id), 2)
+            FROM dw.fact_order_items f
+            JOIN dw.dim_date d ON f.order_purchase_date_key = d.date_key
+            GROUP BY d.full_date ORDER BY d.full_date
+        ]
+(Background on this error at: https://sqlalche.me/e/14/e3q8); 12898)
+[2026-06-30T21:39:30.046+0000] {local_task_job_runner.py:243} INFO - Task exited with return code 1
+[2026-06-30T21:39:30.082+0000] {taskinstance.py:3503} INFO - 0 downstream tasks scheduled from follow-on schedule check
+[2026-06-30T21:39:30.091+0000] {local_task_job_runner.py:222} INFO - ::endgroup::
