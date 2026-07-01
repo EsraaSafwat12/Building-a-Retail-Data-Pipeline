@@ -1,7 +1,11 @@
+import os
 import pandas as pd
 from sqlalchemy import create_engine, text
 import logging
 from datetime import datetime
+from dotenv import load_dotenv
+
+load_dotenv()
 
 print("FILE IS RUNNING")
 logging.basicConfig(
@@ -14,12 +18,12 @@ logging.basicConfig(
 )
 log = logging.getLogger(__name__)
 
-DB_USER = "postgres"
-DB_PASSWORD = "YOUR_PASSWORD_HERE"
-DB_HOST = "localhost"
-DB_PORT = "5432"
-DB_NAME = "Project"
-DATA_PATH = r"D:\Project DEPI\data\raw_source"
+DB_USER = os.getenv("DB_USER", "postgres")
+DB_PASSWORD = os.getenv("DB_PASSWORD")
+DB_HOST = os.getenv("DB_HOST", "localhost")
+DB_PORT = os.getenv("DB_PORT", "5432")
+DB_NAME = os.getenv("DB_NAME", "Project")
+DATA_PATH = os.getenv("DATA_PATH", r"D:\Project DEPI\data\raw_source")
 
 
 def get_engine():

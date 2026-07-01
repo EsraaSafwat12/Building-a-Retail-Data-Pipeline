@@ -3,7 +3,9 @@ import os
 
 import pandas as pd
 from sqlalchemy import create_engine, text
+from dotenv import load_dotenv
 
+load_dotenv()
 
 FILES = [
     ("olist_customers_dataset.csv", "customers"),
@@ -20,7 +22,7 @@ FILES = [
 
 def engine():
     user = os.getenv("PGUSER", "postgres")
-    pwd = os.getenv("PGPASSWORD", "YOUR_PASSWORD_HERE")
+    pwd = os.getenv("PGPASSWORD")
     host = os.getenv("PGHOST", "localhost")
     port = os.getenv("PGPORT", "5432")
     db = os.getenv("PGDATABASE", "Project")
