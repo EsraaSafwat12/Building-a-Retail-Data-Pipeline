@@ -1,223 +1,300 @@
-# 🛒 Retail Data Pipeline — Olist E-Commerce ETL & Analytics Platform
+<div align="center">
 
-<p align="center">
-  <img src="https://img.shields.io/badge/Python-3.9+-blue?style=for-the-badge&logo=python" alt="Python"/>
-  <img src="https://img.shields.io/badge/PostgreSQL-Data%20Warehouse-336791?style=for-the-badge&logo=postgresql" alt="PostgreSQL"/>
-  <img src="https://img.shields.io/badge/Apache%20Airflow-Orchestration-017CEE?style=for-the-badge&logo=apacheairflow" alt="Airflow"/>
-  <img src="https://img.shields.io/badge/Flask-REST%20API-black?style=for-the-badge&logo=flask" alt="Flask"/>
-  <img src="https://img.shields.io/badge/Docker-Containerized-2496ED?style=for-the-badge&logo=docker" alt="Docker"/>
-</p>
+<img src="https://readme-typing-svg.demolab.com?font=Fira+Code&size=32&duration=3000&pause=1000&color=2E75B6&center=true&vCenter=true&width=700&lines=Retail+Data+Pipeline;Olist+E-Commerce+Analytics;End-to-End+Data+Engineering" alt="Typing SVG" />
 
-<p align="center">
-  <b>An end-to-end data engineering pipeline that transforms raw Brazilian e-commerce data into a governed data warehouse, powering a live analytics dashboard.</b>
-</p>
+<br/>
 
----
+<img src="https://img.shields.io/badge/Python-3.9+-3776AB?style=for-the-badge&logo=python&logoColor=white"/>
+<img src="https://img.shields.io/badge/PostgreSQL-18-336791?style=for-the-badge&logo=postgresql&logoColor=white"/>
+<img src="https://img.shields.io/badge/Apache_Airflow-2.9.3-017CEE?style=for-the-badge&logo=apacheairflow&logoColor=white"/>
+<img src="https://img.shields.io/badge/Flask-3.1-000000?style=for-the-badge&logo=flask&logoColor=white"/>
+<img src="https://img.shields.io/badge/Docker-Containerized-2496ED?style=for-the-badge&logo=docker&logoColor=white"/>
+<img src="https://img.shields.io/badge/Azure-Cloud_Deployed-0078D4?style=for-the-badge&logo=microsoftazure&logoColor=white"/>
 
-## 📋 Table of Contents
+<br/><br/>
 
-- [About](#-about)
-- [Architecture](#-architecture)
-- [Dataset](#-dataset)
-- [Key Components](#-key-components)
-- [Data Warehouse Model](#-data-warehouse-model)
-- [Orchestration with Airflow](#-orchestration-with-airflow)
-- [Batch Processing & Pipeline State](#-batch-processing--pipeline-state)
-- [REST API](#-rest-api)
-- [Dashboard](#-dashboard)
-- [Tech Stack](#-tech-stack)
-- [Getting Started](#-getting-started)
-- [Project Structure](#-project-structure)
-- [Security Notes](#-security-notes)
-- [Team Members](#-team-members)
-- [License](#-license)
+> **An end-to-end data engineering platform that transforms 100K+ raw Brazilian e-commerce records into a governed star-schema warehouse, served through a REST API and a live analytics dashboard — fully automated with Apache Airflow.**
+
+<br/>
+
+[![GitHub repo](https://img.shields.io/badge/GitHub-EsraaSafwat12-181717?style=flat-square&logo=github)](https://github.com/EsraaSafwat12/Building-a-Retail-Data-Pipeline)
+![Status](https://img.shields.io/badge/Status-Complete-brightgreen?style=flat-square)
+![License](https://img.shields.io/badge/License-Educational-orange?style=flat-square)
+
+</div>
 
 ---
 
-## 🧾 About
+## 📌 Table of Contents
 
-**Retail Data Pipeline** is a full-scale data engineering project built around the **Olist Brazilian E-Commerce** public dataset. It simulates a real production data platform for a retail business — ingesting raw multi-source data, cleaning and validating it, modeling it into a dimensional data warehouse, and serving it through both a REST API and a live interactive dashboard.
+| | Section |
+|---|---|
+| 🧾 | [About the Project](#-about-the-project) |
+| 🏗️ | [Architecture](#️-architecture) |
+| 📦 | [Dataset](#-dataset) |
+| 🔄 | [Pipeline Stages](#-pipeline-stages) |
+| 🗃️ | [Data Warehouse Model](#️-data-warehouse-model) |
+| ✈️ | [Airflow Orchestration](#️-airflow-orchestration) |
+| 🌐 | [REST API](#-rest-api) |
+| 📊 | [Dashboard](#-dashboard) |
+| 🛠️ | [Tech Stack](#️-tech-stack) |
+| 🚀 | [Getting Started](#-getting-started) |
+| 📁 | [Project Structure](#-project-structure) |
+| 👥 | [Team](#-team) |
 
-The project demonstrates the complete data lifecycle:
+---
 
-**Raw data → Staging → Cleaning → Data Warehouse (star schema) → API → Dashboard**, with **Apache Airflow** orchestrating the pipeline end-to-end and batch/incremental processing tracked via persistent pipeline state.
+## 🧾 About the Project
+
+**Retail Data Pipeline** is a production-grade data engineering project built on the real-world **Olist Brazilian E-Commerce** public dataset.
+
+It simulates a complete retail analytics platform — from raw multi-source CSV ingestion, through a rigorous cleaning and transformation layer, into a fully dimensional star-schema data warehouse, and finally served through both a documented REST API and an interactive live dashboard.
+
+```
+Raw CSV data  →  Staging (clean)  →  DW Star Schema  →  Flask API  →  Dashboard
+                      ↑__________________________↑
+                      Automated every 5 minutes via Apache Airflow
+```
+
+### ✨ What makes it production-ready?
+
+- 🔁 **Fully automated** — two chained Airflow DAGs run on a `*/5 * * * *` schedule with zero manual steps
+- 🛡️ **Resilient** — idempotent pipeline (TRUNCATE before INSERT), no duplicate-key failures on re-runs
+- ✅ **Quality-checked** — built-in data quality assertions after every load
+- 🔗 **Decoupled** — API layer isolates the database from the dashboard
+- ☁️ **Cloud-deployed** — hosted on Microsoft Azure
 
 ---
 
 ## 🏗️ Architecture
 
 ```
-                     ┌────────────────────────────┐
-                     │   Raw Source CSVs           │
-                     │   data/raw_source/           │
-                     │  (orders, customers,          │
-                     │   products, sellers,           │
-                     │   payments, reviews,            │
-                     │   geolocation, inventory)         │
-                     └──────────────┬───────────────┘
-                                    │
-                                    ▼
-                     ┌────────────────────────────┐
-                     │     ETL Pipeline             │
-                     │     (etl_pipeline.py)         │
-                     │  1. Load → staging schema      │
-                     │  2. Clean & validate data        │
-                     │  3. Build dw star schema           │
-                     └──────────────┬───────────────┘
-                                    │
-                     ┌──────────────┴───────────────┐
-                     ▼                               ▼
-        ┌─────────────────────────┐     ┌─────────────────────────┐
-        │   PostgreSQL Database     │     │   Apache Airflow           │
-        │   • staging schema          │◀───▶│   • staging_dag              │
-        │   • dw schema (facts +        │     │   • dw_dag                      │
-        │     dimensions)                  │     │   (Dockerized via                 │
-        └────────────┬─────────────┘     │    docker-compose)                  │
-                     │                    └─────────────────────────┘
-                     ▼
-        ┌─────────────────────────┐
-        │      Flask REST API        │
-        │        (api.py)              │
-        └────────────┬─────────────┘
-                     │
-                     ▼
-        ┌─────────────────────────┐
-        │  Interactive Dashboard     │
-        │  (dashboard.html + Chart.js) │
-        └─────────────────────────┘
-
-           Batch/incremental outputs tracked in
-           data/batch_outputs/ + pipeline_state.json
+┌─────────────────────────────────────────────────────────────────┐
+│                        DATA SOURCES                              │
+│   9 Olist CSV files  +  inventory.csv  (data/raw_source/)       │
+└──────────────────────────────┬──────────────────────────────────┘
+                                │
+                    ┌───────────▼───────────┐
+                    │   STAGING PIPELINE     │   ← Airflow DAG 1
+                    │  staging_dag.py        │     schedule: */5 * * * *
+                    │                        │
+                    │  Task 1: Load raw CSVs │
+                    │  Task 2: Clean & transform│
+                    │  Task 3: Trigger DW ──────────────────────┐
+                    └───────────────────────┘                   │
+                                                                │
+                    ┌───────────────────────┐                   │
+                    │   WAREHOUSE PIPELINE   │ ◄─── triggered ──┘
+                    │  dw_dag.py             │   (TriggerDagRunOperator)
+                    │                        │
+                    │  Task 1: Build dims    │
+                    │  Task 2: Build facts   │
+                    │  Task 3: Quality checks│
+                    │  Task 4: Aggregates    │
+                    └───────────┬───────────┘
+                                │
+               ┌────────────────▼────────────────┐
+               │         PostgreSQL DW            │
+               │   staging schema + dw schema     │
+               └────────────────┬────────────────┘
+                                │
+               ┌────────────────▼────────────────┐
+               │         Flask REST API           │
+               │           api.py                 │
+               │       11 endpoints               │
+               └────────────────┬────────────────┘
+                                │
+               ┌────────────────▼────────────────┐
+               │     Interactive Dashboard        │
+               │   dashboard.html + Chart.js      │
+               └─────────────────────────────────┘
 ```
 
 ---
 
 ## 📦 Dataset
 
-Built on the **Olist Store** Brazilian e-commerce public dataset, enriched with a supplementary inventory feed:
+Built on the **[Olist Store](https://www.kaggle.com/datasets/olistbr/brazilian-ecommerce)** Brazilian e-commerce public dataset (~100K orders, 2016–2018):
 
-| Source File | Description |
-|---|---|
-| `olist_orders_dataset.csv` | Order-level records with timestamps and status |
-| `olist_order_items_dataset.csv` | Line items per order (product, seller, price, freight) |
-| `olist_order_payments_dataset.csv` | Payment method and installment data |
-| `olist_order_reviews_dataset.csv` | Customer review scores and comments |
-| `olist_customers_dataset.csv` | Customer identifiers and location |
-| `olist_sellers_dataset.csv` | Seller identifiers and location |
-| `olist_products_dataset.csv` | Product attributes (category, dimensions, weight) |
-| `olist_geolocation_dataset.csv` | Zip-code-level lat/long data |
-| `product_category_name_translation.csv` | Portuguese → English category mapping |
-| `inventory.csv` | Supplementary stock-level data for inventory analytics |
+| # | Source File | Records | Description |
+|---|---|---|---|
+| 1 | `olist_orders_dataset.csv` | 99,441 | Order-level records — status, timestamps |
+| 2 | `olist_order_items_dataset.csv` | 112,650 | Line items — product, seller, price, freight |
+| 3 | `olist_order_payments_dataset.csv` | 103,886 | Payment method, installments, value |
+| 4 | `olist_order_reviews_dataset.csv` | 99,224 | Customer review scores and comments |
+| 5 | `olist_customers_dataset.csv` | 99,441 | Customer identity and location |
+| 6 | `olist_sellers_dataset.csv` | 3,095 | Seller identity and location |
+| 7 | `olist_products_dataset.csv` | 32,951 | Product attributes, category, dimensions |
+| 8 | `olist_geolocation_dataset.csv` | 1M+ | Zip-code lat/long data |
+| 9 | `product_category_name_translation.csv` | 71 | Portuguese → English category mapping |
 
 ---
 
-## 🧩 Key Components
+## 🔄 Pipeline Stages
 
-| Component | File(s) | Description |
-|---|---|---|
-| **ETL Engine** | `etl_pipeline.py` | Loads raw CSVs into a PostgreSQL `staging` schema, applies cleaning/validation rules, then transforms and loads into the `dw` warehouse schema. Fully logged to `pipeline.log`. |
-| **Orchestration** | `Airflow/dags/staging_dag.py`, `Airflow/dags/dw_dag.py` | Two chained Airflow DAGs automating staging ingestion/cleaning and warehouse dimension/fact builds, deployed via `docker-compose.yml`. |
-| **Batch & Incremental Processing** | `data/processed/`, `data/batch_outputs/`, `pipeline_state.json` | Monthly and batch-numbered processed extracts, daily/monthly aggregate summaries, and synthetic inventory batches — with pipeline state persisted for resumable, incremental runs. |
-| **REST API** | `api.py` | Flask + Flask-CORS service exposing warehouse tables (`/api/sales`, `/api/products`, etc.) as JSON for the dashboard and external consumers. |
-| **Analytics Dashboard** | `dashboard.html` | Dark-themed, tabbed, Chart.js-powered dashboard consuming the Flask API for live KPIs. |
-| **Data Modeling** | `SQL_mysql.sql`, `Project_mysql.sql`, `aggregate_mysql.sql` | DDL for staging/warehouse tables and pre-built aggregation queries for reporting. |
-| **ERD** | `erd_final.pdf` | Full Entity-Relationship Diagram of the data warehouse schema. |
-| **Exploratory Analysis** | `final retail (1).ipynb` | Jupyter notebook used for EDA and pipeline logic prototyping. |
-| **Loader Utility** | `pycharm_load_raw (1).py` | Standalone script for locally loading raw source data during development. |
+### Stage 1 — Raw Ingestion
+All 9 CSV files are loaded as-is into `staging.*_raw` tables using **pandas + SQLAlchemy** via `pycharm_load_raw.py`.
+
+### Stage 2 — Staging Clean & Transform (`SQL.sql`)
+Raw tables are cleaned inside PostgreSQL into `staging.*` tables:
+
+| Rule | Implementation |
+|---|---|
+| Remove empty strings | `NULLIF(TRIM(col), '')` |
+| Deduplicate | `ROW_NUMBER() OVER (PARTITION BY id)` |
+| Fix negative prices | `ABS(price)` |
+| Compute derived columns | `total_amount = price + freight_value` |
+| Add date parts | `EXTRACT(YEAR/MONTH/DAY/ISODOW FROM timestamp)` |
+| Normalize payment type | `'not_defined' → 'unknown'` |
+| Add English categories | `LEFT JOIN staging.product_category_name_translation` |
+
+### Stage 3 — Data Warehouse Build (`Project (2).sql`)
+Cleaned staging data is loaded into the star-schema `dw` schema (see model below).
+
+### Stage 4 — Aggregates (`aggregate.sql`)
+Pre-computed summary tables power fast dashboard queries:
+- `dw.agg_sales_daily` / `dw.agg_sales_monthly`
+- `dw.agg_inventory`
+- `dw.agg_payment_methods`
+- `dw.agg_reviews_monthly`
 
 ---
 
 ## 🗃️ Data Warehouse Model
 
-The warehouse (`dw` schema) follows a **star schema** design:
+The `dw` schema follows a **Star Schema** for fast analytical queries:
 
-**Dimension tables:**
-- `dw.dim_customers` — customer identity & location
-- `dw.dim_products` — product attributes & category (English-translated)
-- `dw.dim_sellers` — seller identity & location
-- `dw.dim_date` — calendar/date breakdown for time-based analysis
+```
+                        ┌─────────────────┐
+                        │  dim_customers  │
+                        │  (customer_id)  │
+                        └────────┬────────┘
+                                 │
+┌──────────────┐    ┌────────────▼─────────────┐    ┌──────────────┐
+│ dim_products │    │     fact_order_items       │    │  dim_sellers │
+│ (product_id) │◄───│  order_id + order_item_id │───►│ (seller_id)  │
+└──────────────┘    │  customer_id  product_id  │    └──────────────┘
+                    │  seller_id    date_key     │
+                    │  price  freight  total     │
+                    └────────────┬──────────────┘
+                                 │
+                        ┌────────▼────────┐
+                        │   dim_date      │
+                        │  (date_key)     │
+                        │  YYYYMMDD INT   │
+                        └─────────────────┘
 
-**Fact tables:**
-- `dw.fact_order_items` — the central fact table: order/customer/product/seller keys, price, freight, total amount, and purchase date key
-- `dw.fact_order_payments` — payment records per order: payment type, installments, value, and purchase date key
-- `dw.fact_order_reviews` — customer reviews per order: review score, comment title, comment message, creation date, and purchase date key
-
-This model supports fast slice-and-dice analytics (sales by category, by region, by time period, by seller performance, etc.) — see `erd_final.pdf` for the complete diagram.
+Additional fact tables:
+  ├── fact_order_payments  (order_id, payment_type, installments, value)
+  └── fact_order_reviews   (review_id, order_id, score, comments)
+```
 
 ---
 
-## 🔄 Orchestration with Airflow
+## ✈️ Airflow Orchestration
 
-Two DAGs manage the pipeline end-to-end:
+The pipeline runs on **Apache Airflow 2.9.3** (Dockerized) with two chained DAGs:
 
-1. **`staging_dag`** — loads all raw CSVs into `staging` tables, then applies cleaning rules (deduplication, null handling, type casting). Runs on a `*/5 * * * *` schedule. At the end of every successful run, it automatically triggers `dw_dag` using a `TriggerDagRunOperator` — no manual hand-off required.
-2. **`dw_dag`** — triggered exclusively by `staging_dag` (its own `schedule_interval` is `None`); builds `dw` dimension tables, populates the three fact tables (`fact_order_items`, `fact_order_payments`, `fact_order_reviews`), runs data quality checks, and refreshes all aggregate tables.
+### `staging_pipeline` — runs every 5 minutes
 
-This chained design guarantees that the warehouse build always starts **after** staging is fully complete, preventing race conditions between the two pipelines.
+```python
+load_raw_to_staging  ──►  clean_transform_staging  ──►  trigger_dw_pipeline
+                                                         (TriggerDagRunOperator)
+```
 
-The Airflow stack (webserver, scheduler, metadata Postgres) is fully containerized via `Airflow/docker-compose.yml`, with `dags/`, `logs/`, `plugins/`, and the project's `data/` folder mounted as volumes.
+### `dw_pipeline` — triggered automatically by staging
 
----
+```python
+build_dimensions  ──►  build_fact_table  ──►  quality_checks  ──►  refresh_aggregates
+```
 
-## ⏱️ Batch Processing & Pipeline State
+> **Why two DAGs?** Separating staging from the warehouse build guarantees the DW pipeline only starts *after* staging is fully complete — eliminating race conditions that occurred with a single monolithic DAG.
 
-Beyond the core ETL, the pipeline supports **incremental/batch execution**:
-
-- `pipeline_state.json` tracks the current processing window (`current_window_start`) and the next batch ID — enabling the pipeline to resume from where it left off rather than reprocessing everything.
-- `data/batch_outputs/` holds generated batch artifacts: `batch_summary.csv`, `batch_inventory_details.csv`, `synthetic_inventory.csv`, `daily_summary.csv`, and `monthly_summary.csv`.
-- `data/processed/` stores time-partitioned and batch-numbered extracts (e.g. `orders_2016_09.csv`, `orders_batch_0001.csv`) for auditability and reprocessing.
+```bash
+# Start Airflow
+cd Airflow
+docker-compose up -d
+# UI: http://localhost:8080
+# Trigger staging_pipeline — dw_pipeline fires automatically
+```
 
 ---
 
 ## 🌐 REST API
 
-Built with **Flask**, the API layer exposes clean JSON endpoints backed directly by the `dw` schema, for example:
+Built with **Flask 3.1** — all endpoints read from the `dw` schema and return JSON:
 
-- `GET /api/sales` → order items with pricing, freight, and status
-- `GET /api/products` → product catalog with categories and dimensions
+| Method | Endpoint | Source Table | Returns |
+|---|---|---|---|
+| GET | `/api/sales` | `fact_order_items` | Latest 100 order items |
+| GET | `/api/products` | `dim_products` | Product catalog |
+| GET | `/api/summary` | `agg_sales_monthly` | Monthly revenue summary |
+| GET | `/api/top_products` | `agg_inventory` | Top 20 products by revenue |
+| GET | `/api/daily` | `agg_sales_daily` | Full daily sales history |
+| GET | `/api/sellers` | `fact_order_items` + `dim_sellers` | Top 20 sellers |
+| GET | `/api/region` | `fact_order_items` + `dim_customers` | Sales by state |
+| GET | `/api/payments` | `agg_payment_methods` | Payment method breakdown |
+| GET | `/api/payments/installments` | `fact_order_payments` | Installment distribution |
+| GET | `/api/reviews` | `agg_reviews_monthly` | Monthly review summary |
+| GET | `/api/reviews/scores` | `fact_order_reviews` | Score distribution (1–5) |
+| GET | `/api/reviews/comments` | `fact_order_reviews` | Latest 100 comments |
 
-CORS is enabled so the dashboard (or any external client) can consume the API directly from the browser.
+```bash
+python api.py        # starts on http://localhost:5000
+```
 
 ---
 
 ## 📊 Dashboard
 
-`dashboard.html` is a self-contained, dark-themed analytics dashboard built with vanilla JS + **Chart.js**, featuring:
+`dashboard.html` — a dark-themed, tabbed analytics dashboard powered by **Chart.js**:
 
-- A configurable API endpoint input (point it at any running instance of `api.py`)
-- Live connection status indicator
-- Tabbed views for different KPI categories
-- Interactive charts rendered directly from live API data
+| Tab | What it shows |
+|---|---|
+| 📈 Sales | Monthly & daily revenue trends, order volume |
+| 🏆 Products | Top 20 by revenue, stock status (In Stock / Low / Out) |
+| 🏪 Sellers | Top 20 sellers with city, state, and seller ID |
+| 🗺️ Region | Revenue breakdown by Brazilian state |
+| 💳 Payments | Credit card / boleto / voucher / debit split + installment distribution |
+| ⭐ Reviews | Monthly avg score, 1–5 distribution, recent customer comments |
+
+> Open `dashboard.html` in your browser with `api.py` running — no build step needed.
 
 ---
 
 ## 🛠️ Tech Stack
 
-| Layer | Technology |
-|---|---|
-| **Language** | Python 3.9+ |
-| **Data Processing** | pandas, SQLAlchemy |
-| **Database** | PostgreSQL (`psycopg2`) |
-| **Orchestration** | Apache Airflow (Docker Compose) |
-| **API** | Flask, Flask-CORS |
-| **Visualization** | HTML / CSS / JavaScript, Chart.js |
-| **Config Management** | python-dotenv |
-| **Notebook** | Jupyter |
+| Layer | Technology | Version |
+|---|---|---|
+| Language | Python | 3.9+ |
+| Data Processing | pandas, SQLAlchemy | — |
+| Database | PostgreSQL | 18 |
+| Orchestration | Apache Airflow | 2.9.3 |
+| Containerization | Docker + Docker Compose | — |
+| API | Flask, Flask-CORS | 3.1.3 |
+| Frontend | HTML / CSS / JavaScript, Chart.js | — |
+| Cloud | Microsoft Azure | — |
+| Security | python-dotenv | — |
 
 ---
 
 ## 🚀 Getting Started
 
-### 1. Clone the repository
+### Prerequisites
+- Python 3.9+
+- PostgreSQL running locally
+- Docker Desktop (for Airflow)
+
+### 1. Clone
 ```bash
 git clone https://github.com/EsraaSafwat12/Building-a-Retail-Data-Pipeline.git
 cd Building-a-Retail-Data-Pipeline
 ```
 
-### 2. Configure environment variables
-Copy the example file and fill in your own local credentials — **never commit your real `.env`**:
+### 2. Environment
 ```bash
 cp .env.example .env
+# Fill in your database credentials in .env
 ```
 ```env
 DB_USER=postgres
@@ -233,84 +310,113 @@ DATA_PATH=/path/to/data/raw_source
 pip install -r requirements.txt
 ```
 
-### 4. Run the ETL pipeline
+### 4. Load raw data
 ```bash
+python "pycharm_load_raw (1).py"
+```
+
+### 5. Build staging + warehouse
+```bash
+# Run SQL.sql then Project (2).sql then aggregate.sql in pgAdmin
+# OR use the ETL script:
 python etl_pipeline.py
 ```
-This loads raw data into `staging`, cleans it, and builds the `dw` warehouse.
 
-### 5. (Optional) Run the full pipeline with Airflow
+### 6. (Optional) Run with Airflow
 ```bash
 cd Airflow
 docker-compose up -d
+# Open http://localhost:8080 → trigger staging_pipeline
 ```
-Open the Airflow UI at `http://localhost:8080`, then trigger `staging_dag` followed by `dw_dag`.
 
-### 6. Start the API
+### 7. Start the API
 ```bash
 python api.py
+# Running on http://localhost:5000
 ```
 
-### 7. Launch the dashboard
-Open `dashboard.html` in your browser and set the API URL (e.g. `http://localhost:5000`) in the connection field.
+### 8. Open the Dashboard
+```
+Open dashboard.html in your browser
+```
 
 ---
 
 ## 📁 Project Structure
 
 ```
-Retail Data Pipeline/
-├── Airflow/
-│   ├── dags/
-│   │   ├── staging_dag.py
-│   │   └── dw_dag.py
-│   ├── plugins/
+Building-a-Retail-Data-Pipeline/
+│
+├── 📂 Airflow/
+│   ├── 📂 dags/
+│   │   ├── staging_dag.py          # DAG 1: Load + Clean → triggers DW
+│   │   └── dw_dag.py               # DAG 2: Dimensions + Facts + Aggregates
+│   ├── 📂 plugins/
 │   └── docker-compose.yml
-├── data/
-│   ├── raw_source/          # Original Olist CSVs + inventory.csv
-│   ├── processed/           # Cleaned, time-partitioned & batch extracts
-│   ├── batch_outputs/       # Batch & aggregate summaries
-│   └── pipeline_state.json  # Incremental processing state
-├── etl_pipeline.py           # Main ETL script (staging → clean → dw)
-├── api.py                     # Flask REST API
-├── dashboard.html               # Analytics dashboard (Chart.js)
-├── SQL_mysql.sql                 # Core schema DDL
-├── Project_mysql.sql               # Project database schema
-├── aggregate_mysql.sql               # Aggregation/reporting queries
-├── erd_final.pdf                       # Data warehouse ERD
-├── final retail (1).ipynb                # EDA / prototyping notebook
-├── pycharm_load_raw (1).py                 # Local raw-data loader utility
-├── pipeline.log                              # ETL execution log
+│
+├── 📂 data/
+│   ├── raw_source/                  # Original Olist CSVs (gitignored)
+│   ├── processed/                   # Time-partitioned extracts
+│   ├── batch_outputs/               # Batch summaries + inventory
+│   └── pipeline_state.json          # Incremental processing state
+│
+├── api.py                           # Flask REST API (11 endpoints)
+├── dashboard.html                   # Analytics dashboard (Chart.js)
+├── etl_pipeline.py                  # Full ETL script
+├── pycharm_load_raw (1).py          # Raw CSV loader utility
+│
+├── SQL.sql                          # Staging schema DDL
+├── Project (2).sql                  # DW schema + loading
+├── aggregate.sql                    # Aggregate tables (PostgreSQL)
+├── SQL_mysql.sql                    # MySQL version — staging
+├── Project_mysql.sql                # MySQL version — DW
+├── aggregate_mysql.sql              # MySQL version — aggregates
+│
+├── erd_final.pdf                    # Entity Relationship Diagram
+├── final retail (1).ipynb           # EDA notebook
 ├── requirements.txt
-├── .env.example
+├── .env.example                     # ← copy this to .env
 └── .gitignore
 ```
 
 ---
 
-## 🔒 Security Notes
+## 🔒 Security
 
-- Real database credentials must **never** be committed to the repository — only `.env.example` with placeholder values should be tracked.
-- Ensure `.env` is listed in `.gitignore`.
-- If real credentials were ever pushed to the repo history, rotate them immediately and consider scrubbing them from git history (e.g. with `git filter-repo` or BFG Repo-Cleaner).
+- **Never commit `.env`** — it's listed in `.gitignore`
+- Only `.env.example` with placeholder values is tracked
+- Database credentials are loaded at runtime via `python-dotenv`
+- If credentials were ever pushed, rotate them immediately and scrub history with `git filter-repo`
 
 ---
 
-## 👥 Team Members
+## 👥 Team
 
-| # | Name |
-|---|---|
-| 1 | 👩‍💻 **Esraa Safwat Mohamed** |
-| 2 | 👨‍💻 **Mohamed Mahmoud Ibrahim** |
-| 3 | 👨‍💻 **Kirolos Magdy Helmy** |
-| 4 | 👩‍💻 **Yasmin Eslam Esmat** |
-| 5 | 👨‍💻 **Youssef Fetyan Mohamed** |
-| 6 | 👩‍💻 **Noran Ayman** |
+<div align="center">
+
+| # | Member | Role |
+|---|---|---|
+| 1 | 👩‍💻 **Esraa Safwat Mohamed** | Team Leader · Airflow · API · Dashboard |
+| 2 | 👨‍💻 **Mohamed Mahmoud Ibrahim** | Staging Load · Cleaning · Transformation |
+| 3 | 👨‍💻 **Kirolos Magdy Helmy** | Data Collection · Micro-Batch Simulation |
+| 4 | 👩‍💻 **Yasmin Eslam Esmat** | Aggregate Tables · Azure Cloud Deployment |
+| 5 | 👨‍💻 **Youssef Fetyan Mohamed** | Star Schema ERD · DW Setup · Dimensions & Fact Table |
+| 6 | 👩‍💻 **Noran Ayman** | ETL Pipeline |
+
+</div>
 
 ---
 
 ## 📄 License
 
-This project is built for educational purposes as part of a data engineering learning track.
+This project is built for educational purposes as part of the **DEPI R4 — Data Engineering Track**.
 
-<p align="center">Made with ❤️ by the Retail Data Pipeline Team</p>
+---
+
+<div align="center">
+
+**⭐ If you found this project useful, consider starring the repo!**
+
+Made with ❤️ by the Retail Data Pipeline Team · DEPI R4
+
+</div>
